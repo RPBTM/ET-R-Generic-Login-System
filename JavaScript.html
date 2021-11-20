@@ -1,0 +1,380 @@
+<script>
+  $(document).ready(function(){
+    $('select').formSelect();
+
+    $('.datepicker').datepicker({
+    selectMonths: true, // Creates a dropdown to control month
+    selectYears: 1, // Creates a dropdown of 15 years to control year
+    format: "dd-mm-yyyy",
+    setDefaultDate: true
+    }
+    );
+
+    $('#radioaddmoreYes').change(function(event) {
+        $('#' + 'drug_addmore').removeClass('none');
+    });
+
+    $('#radioaddmoreNo').change(function(event) {
+        $('#' + 'drug_addmore').addClass('none');
+    });
+
+
+  $('.modal').modal();
+
+  });
+
+function forgotPassword(){
+  console.log('forgotPassword clicked!')
+  forgotPasswordModal();
+}
+
+function forgotPasswordModal(){
+    document.getElementById("loaderTextLink_fp").style.display="none";
+    const elem = document.getElementById('modalForgotPassword');
+    const instance = M.Modal.init(elem, {dismissible: true});
+    instance.open();
+}
+
+function registerNewUser(){
+  console.log('registerNewUser clicked!')
+  registerNewUserModal();
+}
+
+function registerNewUserModal(){
+    document.getElementById("loaderTextLink_rnu").style.display="none";
+    const elem = document.getElementById('modalregisterNewUser');
+    const instance = M.Modal.init(elem, {dismissible: true});
+    instance.open();
+}
+
+function resendPassResetLink(){
+
+    // const elem = document.getElementById('modalForgotPassword');
+    // const instance = M.Modal.init(elem, {dismissible: true});
+    // instance.close();
+
+}
+
+function submitRegisterNewUser(){
+
+  if (/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(document.getElementById("email_nu").value) == false) {
+  showElement('email_nu')
+} else if (/^[-a-zA-Z0-9_ ]{1,200}$/.test(document.getElementById("password_nu").value) == false) {
+  showElement('password_nu')
+} else if (/^[-a-zA-Z0-9_ ]{1,200}$/.test(document.getElementById("c_password_nu").value) == false) {
+  showElement('c_password_nu')
+} else if (document.getElementById("password_nu").value != document.getElementById("c_password_nu").value) {
+  showElement('c_password_nu')
+}else{
+
+  document.getElementById('progress_indeter_nu').style.display='block'
+  var newUser_data = {};
+
+  newUser_data.email = document.getElementById("email_nu").value;
+  newUser_data.password = document.getElementById("password_nu").value;
+  newUser_data.activationKey = Math.random().toString(36).replace(/[^a-z]+/g, '').substr(0, 10);
+
+
+    google.script.run.withSuccessHandler((newUser_reg) => {
+                    console.log("newUser_reg :",newUser_reg);
+                    if(newUser_reg.status=="Success"){
+
+                        google.script.run.withSuccessHandler((url) => {
+                            var link = url+"?n="+newUser_reg.activationKey;
+                            var emailData = {};
+                            emailData.link = link;
+                            emailData.email = newUser_reg.email;
+                            console.log("url : ",link)
+                            google.script.run.withSuccessHandler((status) => {
+
+                              if (status=="Success"){
+                                var modalMessage = document.getElementById("topictext");
+                                modalMessage.innerHTML = "New User Activation Link with instructions has been sent to "+newUser_reg.email + ", Please check your emails";
+                                document.getElementById('progress_indeter').style.display='none'
+                                openModalMessage();
+                            }
+
+                              }).sendNewUserActivationEmail(emailData);
+
+                          }).getUrl();
+
+                      // google.script.run.withSuccessHandler((url) => {
+
+                      //     document.getElementById("loaderTextLink_msg").href = url;
+                      //     document.getElementById("loaderTextLink_msg").innerHTML = 'Click here to login';
+                      //   }).getUrl();
+
+                      //   google.script.run.withSuccessHandler((status) => {
+
+                      //     // document.getElementById("loaderTextLink_msg").href = url;
+                      //     // document.getElementById("loaderTextLink_msg").innerHTML = 'Click here to login';
+                      //   }).sendNewUserActivationEmail();
+
+                        
+                      // var modalMessage = document.getElementById("topictext");
+                      // modalMessage.innerHTML = "Registration Success...";
+                      // document.getElementById('progress_indeter').style.display='none'
+                      // openModalMessage();
+                    }else{
+                      var modalMessage = document.getElementById("topictext");
+                      modalMessage.innerHTML = "Registration Failed......";
+                      document.getElementById('progress_indeter').style.display='none'
+                      openModalMessage();
+                    }
+
+                }).regNewUser(newUser_data);
+
+
+  } 
+}
+
+function loginClicked(){
+
+if (/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(document.getElementById("email").value) == false) {
+  showElement('email')
+} else if (/^[-a-zA-Z0-9_ ]{1,200}$/.test(document.getElementById("password").value) == false) {
+  showElement('password')
+}else{
+
+  document.getElementById('progress_indeter').style.display='block'
+  var login_data = {};
+
+
+  login_data.email = document.getElementById("email").value;
+  login_data.password = document.getElementById("password").value;
+
+  google.script.run.withSuccessHandler((result) => {
+                    console.log(result);
+                    if(login_data.email==result.email && login_data.password==result.password && result.activation=='Activated'){
+                      var modalMessage = document.getElementById("topictext");
+                      modalMessage.innerHTML = "Logging you in ...";
+                      document.getElementById('progress_indeter').style.display='none'
+                      openModalMessage();
+                    } else if (login_data.email==result.email && login_data.password==result.password && result.activation!='Activated'){
+                      
+                      var modalMessage = document.getElementById("topictext");
+                      modalMessage.innerHTML = "Account has not been activated, check your email for the activation link.";
+                      document.getElementById('progress_indeter').style.display='none'
+                      openModalMessage();
+
+                    }
+                    else{
+                      var modalMessage = document.getElementById("topictext");
+                      modalMessage.innerHTML = "Incorrect Email or Password ...";
+                      document.getElementById('progress_indeter').style.display='none'
+                      openModalMessage();
+                    }
+
+                }).validateLogin(login_data);
+  // openModalMessage();
+    }
+
+}
+
+function openModalMessage(){
+    // document.getElementById("loaderTextLink_msg").style.display="none";
+    const elem = document.getElementById('modalMessage');
+    const instance = M.Modal.init(elem, {dismissible: true});
+    instance.open();
+}
+
+function closeModalMessage(){
+    // document.getElementById("loaderTextLink_msg").style.display="none";
+    const elem = document.getElementById('modalMessage');
+    const instance = M.Modal.init(elem, {dismissible: true});
+    instance.close();
+}
+
+
+function showElement(element){
+  document.getElementById(element).focus();
+  document.getElementById(element).style.borderColor = "red";
+  M.toast({html: 'Please enter the data in requested format!'})
+}
+
+function resendPassResetLink(){
+
+if (/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(document.getElementById("email_fp").value) == false) {
+  showElement('email_fp')
+}else{
+
+document.getElementById('progress_indeter_fp').style.display='block'
+var fp_data = {};
+fp_data.email = document.getElementById("email_fp").value;
+
+console.log(fp_data.email)
+
+google.script.run.withSuccessHandler((result) => {
+                    console.log('result.email :',result.email);
+                    if(fp_data.email==result.email&result.resetLink!=""){
+                      var modalMessage = document.getElementById("topictext");
+                      modalMessage.innerHTML = "Password Reset Link with instructions has been ALREADY sent to "+result.email;
+                      document.getElementById('progress_indeter_fp').style.display='none'
+                      openModalMessage();
+                    }else if(fp_data.email==result.email&result.resetLink==""){
+                      
+                      if(sendResetLink(result)=='Success'){
+                      var modalMessage = document.getElementById("topictext");
+                      modalMessage.innerHTML = "Password Reset Link with instructions has been sent to "+result.email;
+                      document.getElementById('progress_indeter_fp').style.display='none'
+                      openModalMessage();
+                      }
+                    }else{
+                      var modalMessage = document.getElementById("topictext");
+                      modalMessage.innerHTML = "Incorrect Email ...";
+                      document.getElementById('progress_indeter_fp').style.display='none'
+                      openModalMessage();
+                    }
+
+                }).validate_forget_password(fp_data);
+
+
+    }
+
+
+}
+
+
+function runFirst() {
+
+    google.script.url.getLocation(function(location) {
+        var value = (location.parameters["v"]);
+        var modalMessage = document.getElementById("topictext");
+        modalMessage.innerHTML = "Loading Data.. please wait..";
+         openModalMessage();
+
+        console.log("v : ", value);
+
+        google.script.run.withSuccessHandler((result) => {
+                    console.log('result.email :',result.email);
+                    closeModalMessage();
+                    document.getElementById("reset_email").value = result.email;
+                    M.updateTextFields();
+
+
+                }).reset_password(reset_data=value);
+
+    });
+}
+
+function runFirstaActivation() {
+
+    google.script.url.getLocation(function(location) {
+        var value = (location.parameters["n"]);
+        // var modalMessage = document.getElementById("topictext");
+        // modalMessage.innerHTML = "Checking data.. please wait..";
+        // openModalMessage();
+
+        console.log("n : ", value);
+
+        google.script.run.withSuccessHandler((result) => {
+                    console.log('result.email :',result.email);
+                    console.log('result.status :',result.status);
+                    closeModalMessage();
+                    if(result.status== 'Success'){
+                    google.script.run.withSuccessHandler((url) => {
+
+                        document.getElementById("loaderTextLink_resetPass").href = url;
+                        document.getElementById("loaderTextLink_resetPass").innerHTML = ' Your Account has been activated, Click here to login';
+                        var modalMessage = document.getElementById("topictext");
+                        modalMessage.innerHTML = "Congratulations..";
+                        openModalMessage();
+                        }).getUrl();
+
+                    }else{
+
+                        var modalMessage = document.getElementById("topictext");
+                        modalMessage.innerHTML = "Account activation failed or already been activated, Please try to login or contact us for further assistance.";
+                        document.getElementById("loaderTextLink_resetPass").innerHTML = '';
+                        openModalMessage();
+
+                    }
+
+
+                }).activateUser(value);
+
+    });
+}
+
+function resetPassword(){
+
+if (/^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(document.getElementById("reset_email").value) == false) {
+  showElement('reset_email')
+} else if (/^[-a-zA-Z0-9_ ]{1,200}$/.test(document.getElementById("reset_password").value) == false) {
+  showElement('reset_password')
+} else if (/^[-a-zA-Z0-9_ ]{1,200}$/.test(document.getElementById("reset_password_c").value) == false) {
+  showElement('reset_password_c')
+} else if (document.getElementById("reset_password").value != document.getElementById("reset_password_c").value) {
+  showElement('reset_password_c')
+}else{
+
+  var change_pass = {};
+  change_pass.reset_email = document.getElementById("reset_email").value;
+  change_pass.reset_password = document.getElementById("reset_password").value;
+  change_pass.reset_password_c = document.getElementById("reset_password_c").value;
+
+  console.log("validation success!")
+  var modalMessage = document.getElementById("topictext");
+  modalMessage.innerHTML = "Resetting password.. please wait..";
+  document.getElementById("loaderTextLink_resetPass").innerHTML = '';
+  openModalMessage();
+
+   google.script.run.withSuccessHandler((result) => {
+                    console.log('result.status :',result.status);
+                    closeModalMessage();
+                    if(result.status=="Success"){
+
+                      google.script.run.withSuccessHandler((url) => {
+
+                          document.getElementById("loaderTextLink_resetPass").href = url;
+                          document.getElementById("loaderTextLink_resetPass").innerHTML = 'Click here to login';
+                        }).getUrl();
+
+                        var modalMessage = document.getElementById("topictext");
+                        modalMessage.innerHTML = "Password changed Successfully..";
+                        document.getElementById("loaderTextLink_resetPass").innerHTML = '';
+                        openModalMessage();
+                    }else{
+                        var modalMessage = document.getElementById("topictext");
+                        modalMessage.innerHTML = "Resetting password.. Failed..";
+                        document.getElementById("loaderTextLink_resetPass").innerHTML = '';
+                        openModalMessage();
+
+                    }
+
+                }).reset_password_change_pass(change_pass);
+
+  }
+
+}
+
+function sendResetLink(reset_data){
+
+    google.script.run.withSuccessHandler((key) => {
+                        google.script.run.withSuccessHandler((url) => {
+                            var link = url+"?v="+key.key;
+                            var emailData = {};
+                            emailData.link = link;
+                            emailData.email = reset_data.email;
+                            console.log("url : ",link)
+                            google.script.run.withSuccessHandler((status) => {
+
+                              if (status=="Success"){
+                                var modalMessage = document.getElementById("topictext");
+                                modalMessage.innerHTML = "Password Reset Link with instructions has been sent to "+reset_data.email;
+                                document.getElementById('progress_indeter_fp').style.display='none'
+                                openModalMessage();
+                            }
+
+                              }).sendResetEmail(emailData);
+
+                          }).getUrl();
+                        }).setResetKey(reset_data);
+
+}
+
+
+
+  
+
+</script>
