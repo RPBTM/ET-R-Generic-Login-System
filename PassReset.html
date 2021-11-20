@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+
+    <!-- JQuery -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+    <!-- Compiled and minified JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+
+
+    <!--Let browser know website is optimized for mobile-->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+            
+	<?!= include('JavaScript.html'); ?>
+  <?!= include("StyleSheet.html"); ?>
+
+  <script>
+    window.onload = function() {
+
+    console.log("Hello world!");
+    runFirst();
+
+    // google.script.run 
+    //     .withSuccessHandler(function(vA) {
+    //         updateSelect(vA);
+    //     })
+    //     .getSelectOptions();
+
+}
+  </script>
+
+  </head>
+  <body>
+
+    <div class="container">
+        <!-- Page Content goes here -->
+     
+    <form class="col s6">
+
+      <div class="row">
+        <div class="input-field col s12">
+         <center> <h5> Reset Your Password here...</h5> </center> 
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="input-field col s12">
+          <input  id="reset_email" type="text" class="validate" readonly>
+          <label for="reset_email">Email : </label>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="input-field col s12">
+          <input  id="reset_password" type="password" class="validate">
+          <label for="reset_password">Password : </label>
+        </div>
+      </div>
+
+        <div class="row">
+        <div class="input-field col s12">
+          <input  id="reset_password_c" type="password" class="validate">
+          <label for="reset_password_c">Confirm Password : </label>
+        </div>
+      </div>
+
+      <div id="progress_indeter" class="none">
+      <div class="progress">
+      <div class="indeterminate"></div>
+      </div>
+      </div>
+
+
+      <div class="row">
+        <div class="input-field col s12">
+          <center><a class="waves-effect waves-light btn" onclick="resetPassword()">Reset Password</a></center>
+        </div>
+      </div>
+
+
+    </form>
+
+
+
+    <div id="modalMessage" class="modal">
+      <div class="modal-content">
+        <h5 id="topictext">Login in...</h5>
+        <a style="color:red" id="loaderTextLink_resetPass" href="#" target="_blank"></a>
+      </div>
+
+    </div>
+
+
+
+
+  </div>
+
+  </body>
+</html>
